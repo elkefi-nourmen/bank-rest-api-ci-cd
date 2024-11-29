@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'phonenumber_field',
     'account_app',
     'transaction_app',
     'rest_framework', # for the DRF : django REST framework
@@ -71,6 +72,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "bank_rest_api.wsgi.application"
+
+
+#Optional: Phone number region settings
+PHONENUMBER_DEFAULT_REGION = 'TN' #Tunisia
+PHONENUMBER_DB_FORMAT = 'INTERNATIONAL' #'NATIONAL': Format like '71 234 567'
+                                        #'E164': Format like '+21671234567'
+                                        #'INTERNATIONAL': Format like '+216 71 234
 
 
 # Database
