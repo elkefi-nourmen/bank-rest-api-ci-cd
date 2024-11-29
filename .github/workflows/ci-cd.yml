@@ -1,0 +1,44 @@
+name: CI/CD Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Specify the virtual environment for the job.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        # Clone the repository's code into the runner.
+
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        # Install dependencies specified in the requirements file.
+
+      - name: Collect static files
+        run: python manage.py collectstatic --noinput
+        # Collect static files for Django 
+
+      # Placeholder for testing
+      - name: Run tests
+        run: |
+          echo "Placeholder for running tests"
+
+      # Placeholder for deployment
+      - name: Deploy application
+        run: |
+          echo "Placeholder for deployment"
