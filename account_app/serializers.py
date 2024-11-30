@@ -2,9 +2,9 @@ from rest_framework import serializers
 from .models import Client,Account,Bank
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Client
-        #fields=['cin', 'name', ]
-        fields='__all__'
+        model = Client
+        fields = '__all__'
+        read_only_fields = ['cin']  
 
 class BankSerializer(serializers.ModelSerializer):
     class Meta:

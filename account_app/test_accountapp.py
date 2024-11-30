@@ -42,11 +42,11 @@ def create_bank(db, bank_data):
 @pytest.fixture
 def account_data(create_client, create_bank):
     return {
-        "rib": "123456789012345678901234567890",  
-        "balance": Decimal("100.00"),  
-        "client": create_client.id,  
-        "accountType": AccountType.CURRENT,  
-        "bank": create_bank.id,  
+        "rib": "123456789012345678901234567890",
+        "balance": Decimal("100.00"),
+        "client": create_client.cin,  # Use cin instead of id
+        "accountType": AccountType.CURRENT,
+        "bank": create_bank.id,
     }
 
 
