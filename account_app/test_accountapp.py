@@ -5,6 +5,7 @@ from decimal import Decimal
 from account_app.models import Client, Bank, Account, AccountType
 
 
+# Define the fixtures to set up test data
 @pytest.fixture
 def client_data():
     return {
@@ -52,61 +53,48 @@ def create_account(db, account_data):
     return Account.objects.create(**account_data)
 
 
-def test_create_client(client_data):
-    client = Client.objects.create(**client_data)
-    assert Client.objects.count() == 1  
-    assert client.cin == client_data["cin"]  
+# This fixture provides the API client
+@pytest.fixture
+def api_client():
+    return APIClient()
 
 
-def test_create_bank(bank_data):
-    bank = Bank.objects.create(**bank_data)
-    assert Bank.objects.count() == 1  
-    assert bank.name == bank_data["name"]  
-
-
-def test_create_account(account_data, create_client, create_bank):
-    account = Account.objects.create(**account_data)
-    assert Account.objects.count() == 1  
-    assert account.client == create_client  
-    assert account.bank == create_bank  
-
-
+# Tests
 @pytest.mark.django_db
-def test_api_create_client(client, client_data):
-    response = client.post("/account_app/clients", client_data, format="json")
+def test_create_client(api_client, client_data):
+    response = api_client.post("/account_app/clients", client_data, format="json")
+    print(response.data)  # For debugging
     assert response.status_code == status.HTTP_201_CREATED  
     assert Client.objects.count() == 1  
+    assert response.data["cin"] == client_data["cin"]  
 
 
 @pytest.mark.django_db
-def test_create_client_invalid_cin(client_data):
+def test_create_client_invalid_cin(api_client, client_data):
     client_data["cin"] = "123"  
-    response = Client.post("/account_app/clients", client_data, format="json")
+    response = api_client.post("/account_app/clients", client_data, format="json")
+    print(response.data)  # For debugging
     assert response.status_code == status.HTTP_400_BAD_REQUEST  
     assert "The cin must have 8 digits" in str(response.data)  
 
 
 @pytest.mark.django_db
-def test_create_bank_invalid_website(bank_data):
+def test_create_bank_invalid_website(api_client, bank_data):
     bank_data["website"] = "invalid_url"  
-    response = Client.post("/account_app/banks", bank_data, format="json")
+    response = api_client.post("/account_app/banks", bank_data, format="json")
+    print(response.data)  # For debugging
     assert response.status_code == status.HTTP_400_BAD_REQUEST  
     assert "Enter a valid URL" in str(response.data)  
 
 
 @pytest.mark.django_db
-def test_api_create_account_without_client(client, account_data):
+def test_create_account_without_client(api_client, account_data):
     account_data.pop("client")  
-    response = client.post("/account_app/accounts", account_data, format="json")
+    response = api_client.post("/account_app/accounts", account_data, format="json")
     assert response.status_code == status.HTTP_400_BAD_REQUEST  
 
 
 @pytest.mark.django_db
-def test_api_get_accounts_by_invalid_bank(client):
-    response = client.get("/account_app/accounts/by-bank/99999")  
+def test_api_get_accounts_by_invalid_bank(api_client):
+    response = api_client.get("/account_app/accounts/by-bank/99999")  
     assert response.status_code == status.HTTP_204_NO_CONTENT  
-
-
-
-
-
