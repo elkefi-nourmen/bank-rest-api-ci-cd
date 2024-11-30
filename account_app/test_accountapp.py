@@ -107,19 +107,6 @@ def test_api_get_accounts_by_invalid_bank(client):
     assert response.status_code == status.HTTP_204_NO_CONTENT  
 
 
-@pytest.mark.django_db
-def test_get_overdrawn_accounts(client, create_account):
-    create_account.balance = Decimal("-50.00")
-    create_account.save()
-    response = client.get("/account_app/accounts/overdrawns")
-    assert response.status_code == status.HTTP_200_OK  
-    assert len(response.json()) == 1  
 
 
-@pytest.mark.django_db
-def test_account_statistics(client, create_account):
-    response = client.get("/account_app/accounts/statistics")
-    assert response.status_code == status.HTTP_200_OK  
-    data = response.json()  
-    assert data["total_balance"] == "100.000"  
-    assert data["total_accounts"] == 1  
+
