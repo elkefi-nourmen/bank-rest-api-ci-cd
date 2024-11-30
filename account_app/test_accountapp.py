@@ -14,6 +14,8 @@ def client_data():
         "familyName": "Doe",  
         "email": "john.doe@example.com",  
         "phoneNumber": "+21612345678",  
+        "photo": "dummy_photo.jpg",  # Dummy photo
+        "client_documents": "dummy_document.pdf",  # Dummy document
     }
 
 
@@ -42,9 +44,9 @@ def account_data(create_client, create_bank):
     return {
         "rib": "123456789012345678901234567890",  
         "balance": Decimal("100.00"),  
-        "client": create_client,  
+        "client": create_client.id,  # Use client ID
         "accountType": AccountType.CURRENT,  
-        "bank": create_bank,  
+        "bank": create_bank.id,  # Use bank ID
     }
 
 
@@ -53,7 +55,6 @@ def create_account(db, account_data):
     return Account.objects.create(**account_data)
 
 
-# This fixture provides the API client
 @pytest.fixture
 def api_client():
     return APIClient()
@@ -97,4 +98,5 @@ def test_create_account_without_client(api_client, account_data):
 @pytest.mark.django_db
 def test_api_get_accounts_by_invalid_bank(api_client):
     response = api_client.get("/account_app/accounts/by-bank/99999")  
-    assert response.status_code == status.HTTP_204_NO_CONTENT  
+    assert response.status_code == status.HTTP_200_OK  # Expect 200 OK, not 204
+    assert len(response.data) == 0  # Ensure no accounts are returned
