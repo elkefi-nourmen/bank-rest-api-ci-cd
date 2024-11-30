@@ -61,7 +61,7 @@ def test_create_client(client_data):
 def test_create_bank(bank_data):
     bank = Bank.objects.create(**bank_data)
     assert Bank.objects.count() == 1  
-    assert bank.name == bank_data["name"] 
+    assert bank.name == bank_data["name"]  
 
 
 def test_create_account(account_data, create_client, create_bank):
@@ -71,61 +71,54 @@ def test_create_account(account_data, create_client, create_bank):
     assert account.bank == create_bank  
 
 
-# Mark the test as requiring database access
 @pytest.mark.django_db
 def test_api_create_client(client, client_data):
-    response = client.post("/clients", client_data, format="json")
+    response = client.post("/account_app/clients", client_data, format="json")
     assert response.status_code == status.HTTP_201_CREATED  
     assert Client.objects.count() == 1  
-
 
 
 @pytest.mark.django_db
 def test_create_client_invalid_cin(client_data):
     client_data["cin"] = "123"  
-    with pytest.raises(Exception) as excinfo: 
-        Client.objects.create(**client_data)
-    assert "The cin must have 8 digits" in str(excinfo.value)  
-
+    response = client.post("/account_app/clients", client_data, format="json")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST  
+    assert "The cin must have 8 digits" in str(response.data)  
 
 
 @pytest.mark.django_db
 def test_create_bank_invalid_website(bank_data):
     bank_data["website"] = "invalid_url"  
-    with pytest.raises(Exception) as excinfo:  
-        Bank.objects.create(**bank_data)
-    assert "Enter a valid URL" in str(excinfo.value)  
-
+    response = client.post("/account_app/banks", bank_data, format="json")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST  
+    assert "Enter a valid URL" in str(response.data)  
 
 
 @pytest.mark.django_db
 def test_api_create_account_without_client(client, account_data):
     account_data.pop("client")  
-    response = client.post("/accounts", account_data, format="json")
+    response = client.post("/account_app/accounts", account_data, format="json")
     assert response.status_code == status.HTTP_400_BAD_REQUEST  
-
 
 
 @pytest.mark.django_db
 def test_api_get_accounts_by_invalid_bank(client):
-    response = client.get("/accounts/by-bank/99999")  
+    response = client.get("/account_app/accounts/by-bank/99999")  
     assert response.status_code == status.HTTP_204_NO_CONTENT  
-
 
 
 @pytest.mark.django_db
 def test_get_overdrawn_accounts(client, create_account):
     create_account.balance = Decimal("-50.00")
     create_account.save()
-    response = client.get("/accounts/overdrawns")
+    response = client.get("/account_app/accounts/overdrawns")
     assert response.status_code == status.HTTP_200_OK  
     assert len(response.json()) == 1  
 
 
-
 @pytest.mark.django_db
 def test_account_statistics(client, create_account):
-    response = client.get("/accounts/statistics")
+    response = client.get("/account_app/accounts/statistics")
     assert response.status_code == status.HTTP_200_OK  
     data = response.json()  
     assert data["total_balance"] == "100.000"  
