@@ -81,7 +81,7 @@ def test_api_create_client(client, client_data):
 @pytest.mark.django_db
 def test_create_client_invalid_cin(client_data):
     client_data["cin"] = "123"  
-    response = client.post("/account_app/clients", client_data, format="json")
+    response = Client.post("/account_app/clients", client_data, format="json")
     assert response.status_code == status.HTTP_400_BAD_REQUEST  
     assert "The cin must have 8 digits" in str(response.data)  
 
@@ -89,7 +89,7 @@ def test_create_client_invalid_cin(client_data):
 @pytest.mark.django_db
 def test_create_bank_invalid_website(bank_data):
     bank_data["website"] = "invalid_url"  
-    response = client.post("/account_app/banks", bank_data, format="json")
+    response = Client.post("/account_app/banks", bank_data, format="json")
     assert response.status_code == status.HTTP_400_BAD_REQUEST  
     assert "Enter a valid URL" in str(response.data)  
 
