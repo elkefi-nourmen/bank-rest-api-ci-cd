@@ -30,7 +30,10 @@ jobs:
 
       - name: Run tests
         run: |
+          export DJANGO_SETTINGS_MODULE=bank_rest_api.settings  # Ensure this points to your settings module without the `.py` extension
           python -m pytest --disable-warnings
+        env:
+          DJANGO_SETTINGS_MODULE: bank_rest_api.settings  
 
 
       # Placeholder for deployment
