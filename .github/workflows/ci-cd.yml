@@ -30,7 +30,7 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest test.py --disable-warnings
+          python -m pytest account-app/tests.py --disable-warnings
 
       # Placeholder for deployment
       - name: Deploy application
