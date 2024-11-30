@@ -12,21 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: ${{ secrets.DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.DB_NAME }}
-        options: > 
-          --health-cmd="pg_isready -U ${{ secrets.DB_USER }}" 
-          --health-interval=10s 
-          --health-timeout=5s 
-          --health-retries=5
-        ports:
-          - 5432:5432
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -36,17 +21,26 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Set up PostgreSQL container
+        run: |
+          docker run --name postgres-ci \
+            -e POSTGRES_USER=${{ secrets.DB_USER }} \
+            -e POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -e POSTGRES_DB=${{ secrets.DB_NAME }} \
+            -p 5432:5432 \
+            -d postgres:14
+        # Wait for the database to be ready
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until docker exec postgres-ci pg_isready -U ${{ secrets.DB_USER }}; do
+            echo "Waiting for PostgreSQL..."
+            sleep 5
+          done
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          until pg_isready -h localhost -p 5432 -U ${{ secrets.DB_USER }}; do
-            echo "Waiting for PostgreSQL..."
-            sleep 5
-          done
 
       - name: Run migrations
         run: |
@@ -65,7 +59,11 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: localhost  
+          DB_HOST: localhost
+
+      - name: Clean up Docker container
+        if: always()
+        run: docker stop postgres-ci && docker rm postgres-ci
 
       - name: Deploy application
         if: success()
