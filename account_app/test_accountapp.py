@@ -62,19 +62,25 @@ def api_client():
 
 @pytest.mark.django_db
 def test_create_client(api_client, client_data):
+    client_data["phoneNumber"] = "+21612345678"  
+    
     response = api_client.post("/account_app/clients", client_data, format="json")
-    print(response.data)  
-    assert response.status_code == status.HTTP_201_CREATED  
-    assert Client.objects.count() == 1  
-    assert response.data["cin"] == client_data["cin"]  
+    print(response.data)
+    assert response.status_code == status.HTTP_201_CREATED
+    assert Client.objects.count() == 1
+    assert response.data["cin"] == client_data["cin"]
+
 
 
 @pytest.mark.django_db
 def test_create_client_invalid_cin(api_client, client_data):
     client_data["cin"] = "123"  
+    
     response = api_client.post("/account_app/clients", client_data, format="json")
-    print(response.data)  
-    assert response.status_code == status.HTTP_400_BAD_REQUEST  
+    print(response.data)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "The cin must have 8 digits" in str(response.data)
+
     assert "The cin must have 8 digits" in str(response.data)  
 
 
@@ -89,9 +95,10 @@ def test_create_bank_invalid_website(api_client, bank_data):
 
 @pytest.mark.django_db
 def test_create_account_without_client(api_client, account_data):
-    account_data.pop("client")  
+    account_data.pop("client")  # Removing client data
     response = api_client.post("/account_app/accounts", account_data, format="json")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST  
+    assert response.status_code == status.HTTP_400_BAD_REQUEST  # Expecting 400 error
+
 
 
 @pytest.mark.django_db
