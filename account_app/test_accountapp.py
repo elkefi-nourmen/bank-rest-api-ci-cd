@@ -14,8 +14,7 @@ def client_data():
         "familyName": "Doe",  
         "email": "john.doe@example.com",  
         "phoneNumber": "+21612345678",  
-        "photo": "dummy_photo.jpg",  # Dummy photo
-        "client_documents": "dummy_document.pdf",  # Dummy document
+        
     }
 
 
@@ -44,7 +43,7 @@ def account_data(create_client, create_bank):
     return {
         "rib": "123456789012345678901234567890",
         "balance": Decimal("100.00"),
-        "client": create_client.cin,  # Use cin instead of id
+        "client": create_client.cin,  
         "accountType": AccountType.CURRENT,
         "bank": create_bank.id,
     }

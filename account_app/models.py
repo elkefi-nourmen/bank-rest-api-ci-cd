@@ -22,11 +22,8 @@ class Client(models.Model):
     phoneNumber =PhoneNumberField(blank=True,
                                 error_messages={
             'invalid': 'Enter a valid phone number (e.g. +21612345678)'
-        })
-    photo=models.ImageField(upload_to='client_images/')
-    client_documents=models.FileField(upload_to='client_documents/',
-                                            validators=[FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx'])]
-)
+        }) 
+
     def __str__(self):
         return f'cin = {self.cin}, email={self.email}'
 
