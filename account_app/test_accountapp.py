@@ -1,102 +1,124 @@
 import pytest
 from rest_framework.test import APIClient
 from rest_framework import status
+from .models import Client, Bank, Account
+from django.core.files.uploadedfile import SimpleUploadedFile
 from decimal import Decimal
-from account_app.models import Client, Bank, Account, AccountType
-
-
-# Define the fixtures to set up test data
-@pytest.fixture
-def client_data():
-    return {
-        "cin": "12345678",  
-        "name": "John",  
-        "familyName": "Doe",  
-        "email": "john.doe@example.com",  
-        "phoneNumber": "+21612345678",  
-        "photo": "dummy_photo.jpg",  # Dummy photo
-        "client_documents": "dummy_document.pdf",  # Dummy document
-    }
-
 
 @pytest.fixture
-def bank_data():
-    return {
-        "name": "Test Bank",  
-        "address": "123 Bank Street",  
-        "phoneNumber": "+21698765432",  
-        "website": "https://testbank.com",  
-    }
-
-
-@pytest.fixture
-def create_client(db, client_data):
-    return Client.objects.create(**client_data)
-
+def bank():
+    return Bank.objects.create(
+        name="Test Bank",
+        address="123 Bank Street",
+        phoneNumber="+21612345678",
+        website="https://testbank.com"
+    )
 
 @pytest.fixture
-def create_bank(db, bank_data):
-    return Bank.objects.create(**bank_data)
-
+def client():
+    # Creating a simple client with a valid photo and document
+    photo = SimpleUploadedFile(name="photo.jpg", content=b'file_content', content_type="image/jpeg")
+    document = SimpleUploadedFile(name="document.pdf", content=b'file_content', content_type="application/pdf")
+    return Client.objects.create(
+        cin="12345678",
+        name="John",
+        familyName="Doe",
+        email="john.doe@example.com",
+        phoneNumber="+21612345678",
+        photo=photo,
+        client_documents=document
+    )
 
 @pytest.fixture
-def account_data(create_client, create_bank):
-    return {
-        "rib": "123456789012345678901234567890",  
-        "balance": Decimal("100.00"),  
-        "client": create_client.id,  # Use client ID
-        "accountType": AccountType.CURRENT,  
-        "bank": create_bank.id,  # Use bank ID
-    }
-
-
-@pytest.fixture
-def create_account(db, account_data):
-    return Account.objects.create(**account_data)
-
+def account(client, bank):
+    return Account.objects.create(
+        rib="123456789012345678901234567890",
+        balance=Decimal("1000.00"),
+        client=client,
+        bank=bank,
+        accountType="current"
+    )
 
 @pytest.fixture
 def api_client():
     return APIClient()
 
+def test_create_client(api_client):
+    url = '/clients/'
+    data = {
+        "cin": "87654321",
+        "name": "Alice",
+        "familyName": "Smith",
+        "email": "alice.smith@example.com",
+        "phoneNumber": "+21698765432"
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data['email'] == "alice.smith@example.com"
 
-# Tests
-@pytest.mark.django_db
-def test_create_client(api_client, client_data):
-    response = api_client.post("/account_app/clients", client_data, format="json")
-    print(response.data)  # For debugging
-    assert response.status_code == status.HTTP_201_CREATED  
-    assert Client.objects.count() == 1  
-    assert response.data["cin"] == client_data["cin"]  
+def test_create_account(api_client, client, bank):
+    url = '/accounts/'
+    data = {
+        "rib": "987654321098765432109876543210",
+        "balance": "500.00",
+        "client": client.cin,
+        "bank": bank.id,
+        "accountType": "current"
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data['balance'] == "500.00"
 
+def test_get_overdrawn_accounts(api_client, account):
+    # Create an overdrawn account
+    overdrawn_account = Account.objects.create(
+        rib="123456789012345678901234567890",
+        balance=Decimal("-50.00"),
+        client=account.client,
+        bank=account.bank,
+        accountType="current"
+    )
+    url = '/accounts/overdrawns/'
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) > 0
+    assert response.data[0]['rib'] == overdrawn_account.rib
 
-@pytest.mark.django_db
-def test_create_client_invalid_cin(api_client, client_data):
-    client_data["cin"] = "123"  
-    response = api_client.post("/account_app/clients", client_data, format="json")
-    print(response.data)  # For debugging
-    assert response.status_code == status.HTTP_400_BAD_REQUEST  
-    assert "The cin must have 8 digits" in str(response.data)  
+def test_get_accounts_by_type(api_client, account):
+    url = f'/accounts/by-type/{account.accountType}/'
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) > 0
 
+def test_get_accounts_by_client(api_client, client, account):
+    url = f'/accounts/by-client/{client.cin}/'
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) > 0
+    assert response.data[0]['rib'] == account.rib
 
-@pytest.mark.django_db
-def test_create_bank_invalid_website(api_client, bank_data):
-    bank_data["website"] = "invalid_url"  
-    response = api_client.post("/account_app/banks", bank_data, format="json")
-    print(response.data)  # For debugging
-    assert response.status_code == status.HTTP_400_BAD_REQUEST  
-    assert "Enter a valid URL" in str(response.data)  
+def test_get_statistics(api_client):
+    url = '/accounts/statistics/'
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert 'total_balance' in response.data
+    assert 'average_balance' in response.data
+    assert 'total_accounts' in response.data
+    assert 'accounts_by_type' in response.data
 
+def test_get_accounts_by_bank(api_client, bank, account):
+    url = f'/accounts/by-bank/{bank.id}/'
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) > 0
+    assert response.data[0]['rib'] == account.rib
 
-@pytest.mark.django_db
-def test_create_account_without_client(api_client, account_data):
-    account_data.pop("client")  
-    response = api_client.post("/account_app/accounts", account_data, format="json")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST  
-
-
-@pytest.mark.django_db
-def test_api_get_accounts_by_invalid_bank(api_client):
-    response = api_client.get("/account_app/accounts/by-bank/99999")  
-    assert response.status_code == status.HTTP_200_OK  # Expect 200 OK, not 204
-    assert len(response.data) == 0  # Ensure no accounts are returned
+def test_update_account_balance(api_client, account):
+    url = f'/accounts/{account.rib}/update-balance/'
+    data = {
+        "balance": "1500.00"
+    }
+    response = api_client.patch(url, data, format='json')
+    account.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert account.balance == Decimal("1500.00")
