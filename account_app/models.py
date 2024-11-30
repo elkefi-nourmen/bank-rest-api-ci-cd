@@ -4,15 +4,15 @@ from django.core.validators import MinValueValidator, RegexValidator, MinLengthV
 
 class Client(models.Model):
     cin=models.CharField(max_length=8,primary_key=True,
-                         validators =[RegexValidator(
-                             regex='^\d{8}$',
-                             message='The cin must have 8 digits',
-                             code='invalid_cin'
-                         )])
+                        validators =[RegexValidator(
+                            regex='^\d{8}$',
+                            message='The cin must have 8 digits',
+                            code='invalid_cin'
+                        )])
     name = models.CharField(max_length=255,
                             validators=[MinLengthValidator(3)])
     familyName = models.CharField(max_length=255,
-                                  validators=[MinLengthValidator(3)])
+                                validators=[MinLengthValidator(3)])
     email = models.EmailField(unique=True)
     # Regex Validator
     phone_regex = RegexValidator(
@@ -20,12 +20,12 @@ class Client(models.Model):
         message="Phone number must be entered in format: '+999999999'. Up to 15 digits allowed."
     )
     phoneNumber =PhoneNumberField(blank=True,
-                                  error_messages={
+                                error_messages={
             'invalid': 'Enter a valid phone number (e.g. +21612345678)'
         })
     photo=models.ImageField(upload_to='client_images/')
     client_documents=models.FileField(upload_to='client_documents/',
-                                              validators=[FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx'])]
+                                            validators=[FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx'])]
 )
     def __str__(self):
         return f'cin = {self.cin}, email={self.email}'
@@ -46,7 +46,7 @@ class Bank(models.Model):
     creationDate=models.DateField(auto_now_add=True)
     phoneNumber =PhoneNumberField(blank=True)
     website=models.URLField(
-         validators=[
+        validators=[
             URLValidator(schemes=['https']),  # Only allow https URLs
         ]
     )

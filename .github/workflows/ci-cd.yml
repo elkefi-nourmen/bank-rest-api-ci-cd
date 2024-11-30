@@ -16,7 +16,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        # Clone the repository's code into the runner.
 
       - name: Set up Python environment
         uses: actions/setup-python@v4
@@ -29,12 +28,12 @@ jobs:
           pip install -r requirements.txt
         # Install dependencies specified in the requirements file.
 
-      # Placeholder for testing
       - name: Run tests
         run: |
-          echo "Placeholder for running tests"
+          python -m pytest account-app/test.py --disable-warnings
 
       # Placeholder for deployment
       - name: Deploy application
+        if: success() 
         run: |
           echo "Placeholder for deployment"
