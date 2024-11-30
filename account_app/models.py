@@ -3,6 +3,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django.core.validators import MinValueValidator, RegexValidator, MinLengthValidator, URLValidator, FileExtensionValidator
 
 class Client(models.Model):
+    id = models.AutoField(primary_key=True) #...
     cin=models.CharField(max_length=8,primary_key=True,
                         validators =[RegexValidator(
                             regex='^\d{8}$',
