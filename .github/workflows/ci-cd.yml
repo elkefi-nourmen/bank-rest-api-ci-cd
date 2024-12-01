@@ -68,4 +68,5 @@ jobs:
       - name: Deploy application
         if: success()
         run: |
-          run: echo "Placeholder for deployment"
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
