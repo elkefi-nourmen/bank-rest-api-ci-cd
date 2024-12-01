@@ -42,6 +42,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Set up Sentry environment variables
+        run: |
+          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> $GITHUB_ENV
+          echo "SENTRY_ENVIRONMENT=ci" >> $GITHUB_ENV
+
       - name: Run migrations
         run: |
           python manage.py migrate
@@ -50,6 +55,7 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_HOST: localhost
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
       - name: Run tests
         run: |
@@ -60,6 +66,7 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_HOST: ${{ secrets.DB_HOST }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
       - name: Clean up Docker container
         if: always()
@@ -69,4 +76,3 @@ jobs:
         if: success()
         run: |
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
-

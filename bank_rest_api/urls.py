@@ -18,7 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
-
+from account_app.views import trigger_error
 def redirect_to_account_app(request):
     return redirect('account_app/')
 
@@ -27,4 +27,6 @@ urlpatterns = [
     path('', redirect_to_account_app),
     path('account_app/', include('account_app.urls')),
     path('transaction_app/', include('transaction_app.urls')),
+    path('sentry-debug/', trigger_error, name='sentry-debug'),
+    
 ]

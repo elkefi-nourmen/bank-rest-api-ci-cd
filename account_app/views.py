@@ -10,6 +10,11 @@ from decimal import Decimal
 
 from .models import Account, AccountType, Bank, Client
 from .serializers import AccountSerializer, BankSerializer, ClientSerializer
+from django.http import HttpResponse
+
+def trigger_error(request):
+    division_by_zero = 1 / 0
+    return HttpResponse("This will never be shown!")
 
 
 class ClientViewSet(viewsets.ModelViewSet):

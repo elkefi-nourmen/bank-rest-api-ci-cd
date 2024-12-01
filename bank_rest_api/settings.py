@@ -11,6 +11,17 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 from decouple import config
 from pathlib import Path
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
+
+
+
+sentry_sdk.init(
+    dsn="https://c4e18966c4f88e0b0e0d19e05ec5cecc@o4508394368204800.ingest.us.sentry.io/4508394375282688",
+    integrations=[DjangoIntegration()],
+    traces_sample_rate=0.5   
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
