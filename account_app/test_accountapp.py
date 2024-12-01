@@ -24,7 +24,7 @@ def bank_data():
     return {
         "name": "Test Bank",  
         "address": "123 Bank Street",  
-        #"phoneNumber": "+21698765432",  
+        "phoneNumber": "+21698765432",  
         "website": "https://testbank.com",  
     }
 
