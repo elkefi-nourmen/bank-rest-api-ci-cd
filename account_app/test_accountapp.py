@@ -13,7 +13,7 @@ def client_data():
         "name": "John",  
         "familyName": "Doe",  
         "email": "john.doe@example.com",  
-        "phoneNumber": "+21612345678",  
+        #"phoneNumber": "+21612345678",  
         
     }
 
@@ -23,7 +23,7 @@ def bank_data():
     return {
         "name": "Test Bank",  
         "address": "123 Bank Street",  
-        "phoneNumber": "+21698765432",  
+        #"phoneNumber": "+21698765432",  
         "website": "https://testbank.com",  
     }
 
@@ -62,7 +62,7 @@ def api_client():
 
 @pytest.mark.django_db
 def test_create_client(api_client, client_data):
-    client_data["phoneNumber"] = "+21612345678"  
+    #client_data["phoneNumber"] = "+21612345678"  
     
     response = api_client.post("/account_app/clients", client_data, format="json")
     print(response.data)

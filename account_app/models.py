@@ -15,7 +15,7 @@ class Client(models.Model):
                                 validators=[MinLengthValidator(3)])
     email = models.EmailField(unique=True)
     
-    phoneNumber = PhoneNumberField(blank=False, unique=True)
+    #phoneNumber = PhoneNumberField(blank=False, unique=True)
     def __str__(self):
         return f'cin = {self.cin}, email={self.email}'
 
