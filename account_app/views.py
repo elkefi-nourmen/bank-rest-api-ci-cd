@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework import status
 
 from django.db.models import Sum, Avg
 from decimal import Decimal
@@ -23,9 +24,23 @@ class BankViewSet(viewsets.ModelViewSet):
     serializer_class = BankSerializer
 
 
+
+
 class AccountViewSet(viewsets.ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
+
+    def create(self, request, *args, **kwargs):
+        # Validate the presence of the client field
+        client = request.data.get("client")
+        if not client:
+            return Response(
+                {"detail": "Client is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # If the client is present, proceed with the default creation logic
+        return super().create(request, *args, **kwargs)
 
     @action(detail=False, methods=["GET"], url_path="overdrawns")
     def get_overdrawn_accounts(self, request):
@@ -33,21 +48,13 @@ class AccountViewSet(viewsets.ModelViewSet):
             result = Account.objects.filter(balance__lt=0)
             serializer = AccountSerializer(result, many=True)
             accounts = serializer.data
-            return HttpResponse(accounts, 
-                                status.HTTP_200_OK
-                                )
+            return HttpResponse(accounts, status.HTTP_200_OK)
         except Account.DoesNotExist:
             return HttpResponse(
-        json.dumps({"message": "There is no overdrawn accounts."}), 
-        status=status.HTTP_204_NO_CONTENT,
-        content_type="application/json"
-        )
-        #or simply
-        # return JsonResponse(
-        #{"message": "There is no overdrawn accounts."}, 
-        #status=status.HTTP_204_NO_CONTENT 
-        #)
-
+                json.dumps({"message": "There is no overdrawn accounts."}),
+                status=status.HTTP_204_NO_CONTENT,
+                content_type="application/json"
+            )
 
     @action(detail=False, methods=["GET"], url_path="by-type/(?P<account_type>[^/.]+)")
     def get_accounts_by_type(self, request, account_type=None):
@@ -57,12 +64,12 @@ class AccountViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(accounts, many=True)
             return Response(serializer.data)
         except Account.DoesNotExist:
-            return Response(f"There no accounts of type {account_type}",status=status.HTTP_204_NO_CONTENT)
+            return Response(f"There no accounts of type {account_type}", status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["PATCH"], url_path="update-balance")
     def update_balance(self, request, pk=None):
         """Update account balance"""
-        
+
     @action(detail=False, methods=["GET"], url_path="statistics")
     def get_statistics(self, request):
         """Get account statistics"""
@@ -90,4 +97,3 @@ class AccountViewSet(viewsets.ModelViewSet):
         accounts = Account.objects.filter(client__cin=client_cin)
         serializer = self.get_serializer(accounts, many=True)
         return Response(serializer.data)
-

@@ -76,11 +76,7 @@ WSGI_APPLICATION = "bank_rest_api.wsgi.application"
 
 #Optional: Phone number region settings
 PHONENUMBER_DEFAULT_REGION = 'TN' #Tunisia
-PHONENUMBER_DB_FORMAT = 'INTERNATIONAL' #'NATIONAL': Format like '71 234 567'
-                                        #'E164': Format like '+21671234567'
-                                        #'INTERNATIONAL': Format like '+216 71 234
-
-
+PHONENUMBER_DB_FORMAT = 'E164'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
