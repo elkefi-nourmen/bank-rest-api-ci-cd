@@ -93,13 +93,11 @@ def test_create_bank_invalid_website(api_client, bank_data):
 
 @pytest.mark.django_db
 def test_create_account_without_client(api_client, account_data):
-    account_data.pop("client")  # Simulate missing client data
+    account_data.pop("client")  
     response = api_client.post("/account_app/accounts", account_data, format="json")
     
-    # Assert that the response status code is 400 (Bad Request)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    # Assert that the error message matches the expected message
     assert "Client is required." in str(response.data)
 
 
